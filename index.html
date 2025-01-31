@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Student Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            text-align: right;
+        }
+
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+
+        #students-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #students-list li {
+            background-color: #fff;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        input[type="text"], input[type="number"], button {
+            width: 200px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .input-group input {
+            width: 100%;
+        }
+
+        .section h2 {
+            margin-bottom: 15px;
+        }
+
+        .buttons-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .buttons-container button {
+            width: 45%;
+        }
+    </style>
+    <script>
+        async function fetchStudents() {
+            const response = await fetch('http://127.0.0.1:8000/students/');
+            const data = await response.json();
+            const studentsList = document.getElementById('students-list');
+            studentsList.innerHTML = ''; // تنظيف القائمة قبل إعادة ملئها
+
+            data.forEach(student => {
+                const li = document.createElement('li');
+                li.textContent = `${student.name} - Grade: ${student.grade}`;
+                studentsList.appendChild(li);
+            });
+        }
+
+        async function addStudent() {
+            const name = document.getElementById('student-name').value;
+            const grade = document.getElementById('student-grade').value;
+
+            const studentData = {
+                id: Math.floor(Math.random() * 1000), // تعيين id عشوائي
+                name: name,
+                grade: parseInt(grade),
+            };
+
+            const response = await fetch('http://127.0.0.1:8000/students/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(studentData),
+            });
+
+            if (response.ok) {
+                fetchStudents(); // إعادة تحميل القائمة بعد إضافة طالب جديد
+            }
+        }
+
+        async function updateStudent() {
+            const id = document.getElementById('update-id').value;
+            const name = document.getElementById('update-name').value;
+            const grade = document.getElementById('update-grade').value;
+
+            const studentData = {
+                id: parseInt(id),
+                name: name,
+                grade: parseInt(grade),
+            };
+
+            const response = await fetch(`http://127.0.0.1:8000/students/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(studentData),
+            });
+
+            if (response.ok) {
+                fetchStudents(); // إعادة تحميل القائمة بعد تحديث الطالب
+            }
+        }
+
+        async function deleteStudent() {
+            const id = document.getElementById('delete-id').value;
+
+            const response = await fetch(`http://127.0.0.1:8000/students/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                fetchStudents(); // إعادة تحميل القائمة بعد حذف الطالب
+            }
+        }
+
+        window.onload = fetchStudents;
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>إدارة الطلاب</h1>
+
+        <div class="section">
+            <h2>قائمة الطلاب</h2>
+            <ul id="students-list"></ul>
+        </div>
+
+        <div class="section">
+            <h2>إضافة طالب جديد</h2>
+            <div class="input-group">
+                <input type="text" id="student-name" placeholder="اسم الطالب">
+                <input type="number" id="student-grade" placeholder="الدرجة">
+            </div>
+            <button onclick="addStudent()">إضافة طالب</button>
+        </div>
+
+        <div class="section">
+            <h2>تحديث بيانات الطالب</h2>
+            <div class="input-group">
+                <input type="number" id="update-id" placeholder="ID الطالب">
+                <input type="text" id="update-name" placeholder="اسم جديد">
+                <input type="number" id="update-grade" placeholder="الدرجة الجديدة">
+            </div>
+            <button onclick="updateStudent()">تحديث بيانات الطالب</button>
+        </div>
+
+        <div class="section">
+            <h2>حذف طالب</h2>
+            <div class="input-group">
+                <input type="number" id="delete-id" placeholder="ID الطالب">
+            </div>
+            <button onclick="deleteStudent()">حذف الطالب</button>
+        </div>
+    </div>
+
+</body>
+</html>
